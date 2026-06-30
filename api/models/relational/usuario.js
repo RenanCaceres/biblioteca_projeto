@@ -29,6 +29,13 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: 'leitor',
     },
+    // Vincula este usuário de login a um registro da tabela "leitor"
+    // Só é usado quando tipo = 'leitor': é o que permite ao leitor
+    // consultar os próprios empréstimos (ver leitorController.getEmprestimosByLeitor)
+    leitor_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
   });
 
   return Usuario;

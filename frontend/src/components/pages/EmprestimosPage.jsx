@@ -3,7 +3,7 @@
 // Leitores veem apenas os próprios empréstimos; admin/bibliotecário veem todos
 
 import React, { useState, useEffect } from 'react';
-import { getEmprestimos, postEmprestimo, registrarDevolucao, getLivros, getLeitores } from '../../services/api';
+import { getEmprestimos, postEmprestimo, registrarDevolucao, getLivros, getLeitores, getEmprestimosByLeitor } from '../../services/api';
 
 function getUsuarioLogado() {
   const token = localStorage.getItem('token');
@@ -23,6 +23,7 @@ export default function EmprestimosPage() {
   const [leitores, setLeitores] = useState([]);
   const [form, setForm] = useState(formVazio);
   const [filtroStatus, setFiltroStatus] = useState('');
+  const [filtroData, setFiltroData] = useState({ data_inicio: '', data_fim: '' });
   const [erro, setErro] = useState('');
   const usuario = getUsuarioLogado();
   const podeRegistrar = usuario?.tipo === 'admin' || usuario?.tipo === 'bibliotecario';
@@ -36,13 +37,37 @@ export default function EmprestimosPage() {
     }
   }, []);
 
-  async function carregarEmprestimos(status = '') {
+  async function carregarEmprestimos(status = filtroStatus, datas = filtroData) {
     try {
-      // Se for leitor, filtra pelo leitor_id do token — mas a proteção real está na API
-      const query = status ? `?status=${status}` : '';
+      // Usuário tipo "leitor" não tem permissão para listar todos os empréstimos
+      // (GET /emprestimos é restrito a admin/bibliotecario na API), então usamos
+      // a rota específica que retorna apenas os empréstimos do próprio leitor
+      if (usuario?.tipo === 'leitor') {
+        if (!usuario.leitor_id) {
+          setEmprestimos([]);
+          setErro('Seu usuário não está vinculado a um cadastro de leitor. Procure a biblioteca.');
+          return;
+        }
+        let dados = await getEmprestimosByLeitor(usuario.leitor_id);
+        if (status) dados = dados.filter(e => e.status === status);
+        if (datas.data_inicio) dados = dados.filter(e => e.data_emprestimo >= datas.data_inicio);
+        if (datas.data_fim)    dados = dados.filter(e => e.data_emprestimo <= datas.data_fim);
+        setEmprestimos(dados);
+        return;
+      }
+
+      const params = new URLSearchParams();
+      if (status) params.set('status', status);
+      if (datas.data_inicio) params.set('data_inicio', datas.data_inicio);
+      if (datas.data_fim)    params.set('data_fim', datas.data_fim);
+      const query = params.toString() ? `?${params.toString()}` : '';
       const dados = await getEmprestimos(query);
       setEmprestimos(dados);
     } catch { setErro('Erro ao carregar empréstimos'); }
+  }
+
+  function handleFiltroDataChange(e) {
+    setFiltroData({ ...filtroData, [e.target.name]: e.target.value });
   }
 
   function handleChange(e) {
@@ -64,7 +89,7 @@ export default function EmprestimosPage() {
     if (!window.confirm('Confirmar devolução?')) return;
     try {
       await registrarDevolucao(id);
-      carregarEmprestimos(filtroStatus);
+      carregarEmprestimos(filtroStatus, filtroData);
     } catch { setErro('Erro ao registrar devolução'); }
   }
 
@@ -125,17 +150,28 @@ export default function EmprestimosPage() {
         </div>
       )}
 
-      {/* Filtro por status */}
-      <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
+      {/* Filtro por status e por intervalo de datas do empréstimo */}
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
         {['', 'aberto', 'devolvido', 'atrasado'].map(s => (
           <button
             key={s}
             style={{ ...btnStyle(filtroStatus === s ? '#2c3e50' : '#95a5a6') }}
-            onClick={() => { setFiltroStatus(s); carregarEmprestimos(s); }}
+            onClick={() => { setFiltroStatus(s); carregarEmprestimos(s, filtroData); }}
           >
             {s === '' ? 'Todos' : s.charAt(0).toUpperCase() + s.slice(1)}
           </button>
         ))}
+        <span style={{ marginLeft: '8px' }}>De:</span>
+        <input style={{ ...inputStyle, width: '160px' }} type="date" name="data_inicio" value={filtroData.data_inicio} onChange={handleFiltroDataChange} />
+        <span>Até:</span>
+        <input style={{ ...inputStyle, width: '160px' }} type="date" name="data_fim" value={filtroData.data_fim} onChange={handleFiltroDataChange} />
+        <button style={btnStyle('#3498db')} onClick={() => carregarEmprestimos(filtroStatus, filtroData)}>Filtrar por data</button>
+        <button
+          style={btnStyle('#95a5a6')}
+          onClick={() => { const vazio = { data_inicio: '', data_fim: '' }; setFiltroData(vazio); carregarEmprestimos(filtroStatus, vazio); }}
+        >
+          Limpar datas
+        </button>
       </div>
 
       {/* Tabela de empréstimos */}

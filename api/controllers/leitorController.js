@@ -80,10 +80,14 @@ module.exports = {
         return res.status(403).json({ error: 'Você só pode ver seus próprios empréstimos' });
       }
 
-      // include faz JOIN com a tabela de livros para trazer o título junto
+      // include faz JOIN com a tabela de livros (e também com o próprio leitor,
+      // para manter o mesmo formato usado na listagem geral de empréstimos)
       const emprestimos = await db.Emprestimo.findAll({
         where: { leitor_id: leitorId },
-        include: [{ model: db.Livro, attributes: ['titulo', 'autor'] }],
+        include: [
+          { model: db.Leitor, attributes: ['nome', 'cpf_ra'] },
+          { model: db.Livro, attributes: ['titulo', 'autor'] },
+        ],
       });
 
       res.status(200).json(emprestimos);

@@ -34,4 +34,9 @@ db.Emprestimo.belongsTo(db.Leitor, { foreignKey: 'leitor_id' });
 db.Livro.hasMany(db.Emprestimo, { foreignKey: 'livro_id' });
 db.Emprestimo.belongsTo(db.Livro, { foreignKey: 'livro_id' });
 
+// Um usuário de login do tipo 'leitor' está vinculado a um registro da
+// tabela leitor (é o que permite a ele consultar os próprios empréstimos)
+db.Leitor.hasOne(db.Usuario, { foreignKey: 'leitor_id' });
+db.Usuario.belongsTo(db.Leitor, { foreignKey: 'leitor_id' });
+
 module.exports = db;

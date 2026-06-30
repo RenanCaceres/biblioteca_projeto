@@ -18,11 +18,14 @@ const formVazio = {
   categoria: '', isbn: '', quantidade_total: 1,
 };
 
+// Estado inicial dos filtros de busca (separado do formulário de cadastro)
+const filtroVazio = { titulo: '', autor: '', categoria: '', isbn: '', disponivel: '' };
+
 export default function LivrosPage() {
   const [livros, setLivros] = useState([]);   // lista de livros (state = apostila cap24)
   const [form, setForm] = useState(formVazio);
   const [editandoId, setEditandoId] = useState(null); // null = modo criação
-  const [filtro, setFiltro] = useState('');
+  const [filtro, setFiltro] = useState(filtroVazio);
   const [erro, setErro] = useState('');
   const tipo = getTipoUsuario();
   const podeEditar = tipo === 'admin' || tipo === 'bibliotecario';
@@ -33,11 +36,24 @@ export default function LivrosPage() {
     carregarLivros();
   }, []);
 
-  async function carregarLivros(query = '') {
+  // Monta a query string a partir do objeto de filtros (só inclui campos preenchidos)
+  // Suporta busca por título, autor, categoria, ISBN e disponibilidade — conforme exigido no projeto
+  async function carregarLivros(filtros = filtro) {
     try {
-      const dados = await getLivros(query ? `?titulo=${query}` : '');
+      const params = new URLSearchParams();
+      if (filtros.titulo)     params.set('titulo', filtros.titulo);
+      if (filtros.autor)      params.set('autor', filtros.autor);
+      if (filtros.categoria)  params.set('categoria', filtros.categoria);
+      if (filtros.isbn)       params.set('isbn', filtros.isbn);
+      if (filtros.disponivel) params.set('disponivel', filtros.disponivel);
+      const query = params.toString() ? `?${params.toString()}` : '';
+      const dados = await getLivros(query);
       setLivros(dados);
     } catch { setErro('Erro ao carregar livros'); }
+  }
+
+  function handleFiltroChange(e) {
+    setFiltro({ ...filtro, [e.target.name]: e.target.value });
   }
 
   function handleChange(e) {
@@ -110,11 +126,22 @@ export default function LivrosPage() {
         </div>
       )}
 
-      {/* Campo de busca por título */}
-      <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
-        <input style={{ ...inputStyle, width: '300px' }} placeholder="Buscar por título..." value={filtro} onChange={e => setFiltro(e.target.value)} />
-        <button style={btnStyle('#3498db')} onClick={() => carregarLivros(filtro)}>Buscar</button>
-        <button style={btnStyle('#95a5a6')} onClick={() => { setFiltro(''); carregarLivros(); }}>Limpar</button>
+      {/* Filtros de busca: título, autor, categoria, ISBN e disponibilidade */}
+      <div style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', marginBottom: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', marginBottom: '8px' }}>
+          <input style={inputStyle} name="titulo" placeholder="Título..." value={filtro.titulo} onChange={handleFiltroChange} />
+          <input style={inputStyle} name="autor" placeholder="Autor..." value={filtro.autor} onChange={handleFiltroChange} />
+          <input style={inputStyle} name="categoria" placeholder="Categoria..." value={filtro.categoria} onChange={handleFiltroChange} />
+          <input style={inputStyle} name="isbn" placeholder="ISBN..." value={filtro.isbn} onChange={handleFiltroChange} />
+          <select style={inputStyle} name="disponivel" value={filtro.disponivel} onChange={handleFiltroChange}>
+            <option value="">Disponibilidade (todas)</option>
+            <option value="true">Somente disponíveis</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button style={btnStyle('#3498db')} onClick={() => carregarLivros(filtro)}>Buscar</button>
+          <button style={btnStyle('#95a5a6')} onClick={() => { setFiltro(filtroVazio); carregarLivros(filtroVazio); }}>Limpar</button>
+        </div>
       </div>
 
       {/* Tabela de livros */}
@@ -122,7 +149,7 @@ export default function LivrosPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', borderRadius: '8px' }}>
           <thead>
             <tr>
-              {['Título', 'Autor', 'Categoria', 'ISBN', 'Disponível', 'Total', 'Ações'].map(h => (
+              {['Título', 'Autor', 'Categoria', 'ISBN', 'Disponível', 'Total', 'Status', 'Ações'].map(h => (
                 <th key={h} style={thStyle}>{h}</th>
               ))}
             </tr>
@@ -139,6 +166,9 @@ export default function LivrosPage() {
                   {l.quantidade_disponivel}
                 </td>
                 <td style={tdStyle}>{l.quantidade_total}</td>
+                <td style={{ ...tdStyle, color: l.status === 'disponivel' ? 'green' : 'red', fontWeight: 'bold' }}>
+                  {l.status === 'disponivel' ? 'Disponível' : 'Indisponível'}
+                </td>
                 <td style={tdStyle}>
                   {podeEditar && <button style={btnStyle('#f39c12')} onClick={() => handleEditar(l)}>Editar</button>}
                   {podeExcluir && <button style={btnStyle('#e74c3c')} onClick={() => handleDeletar(l.id)}>Excluir</button>}

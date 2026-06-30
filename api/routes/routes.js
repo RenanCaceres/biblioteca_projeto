@@ -97,7 +97,54 @@ router.get('/usuarios/:id', authenticateToken, authorize('admin'), usuarioContro
  *         description: Usuário criado
  */
 router.post('/usuarios', authenticateToken, authorize('admin'), usuarioController.postUsuario);
+
+/**
+ * @swagger
+ * /usuarios/{id}:
+ *   put:
+ *     summary: Edita um usuário existente (apenas admin)
+ *     tags: [Usuários]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:  { type: string }
+ *               login: { type: string }
+ *               senha: { type: string, description: "Opcional — se vazio, mantém a senha atual" }
+ *               tipo:  { type: string, enum: [admin, bibliotecario, leitor] }
+ *     responses:
+ *       200:
+ *         description: Usuário atualizado
+ *       404:
+ *         description: Usuário não encontrado
+ */
 router.put('/usuarios/:id', authenticateToken, authorize('admin'), usuarioController.putUsuario);
+
+/**
+ * @swagger
+ * /usuarios/{id}:
+ *   delete:
+ *     summary: Remove um usuário do sistema (apenas admin)
+ *     tags: [Usuários]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       204:
+ *         description: Usuário removido
+ *       404:
+ *         description: Usuário não encontrado
+ */
 router.delete('/usuarios/:id', authenticateToken, authorize('admin'), usuarioController.deleteUsuario);
 
 // ==================== LIVROS ====================
@@ -119,6 +166,9 @@ router.delete('/usuarios/:id', authenticateToken, authorize('admin'), usuarioCon
  *         name: categoria
  *         schema: { type: string }
  *       - in: query
+ *         name: isbn
+ *         schema: { type: string }
+ *       - in: query
  *         name: disponivel
  *         schema: { type: boolean }
  *     responses:
@@ -126,6 +176,24 @@ router.delete('/usuarios/:id', authenticateToken, authorize('admin'), usuarioCon
  *         description: Lista de livros
  */
 router.get('/livros', authenticateToken, livroController.getLivros);
+
+/**
+ * @swagger
+ * /livros/{id}:
+ *   get:
+ *     summary: Busca um livro por ID
+ *     tags: [Livros]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Dados do livro
+ *       404:
+ *         description: Livro não encontrado
+ */
 router.get('/livros/:id', authenticateToken, livroController.getLivroById);
 
 /**
@@ -153,7 +221,57 @@ router.get('/livros/:id', authenticateToken, livroController.getLivroById);
  *         description: Livro cadastrado
  */
 router.post('/livros', authenticateToken, authorize('admin', 'bibliotecario'), livroController.postLivro);
+
+/**
+ * @swagger
+ * /livros/{id}:
+ *   put:
+ *     summary: Edita um livro existente (admin ou bibliotecario)
+ *     tags: [Livros]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               titulo:           { type: string }
+ *               autor:            { type: string }
+ *               editora:          { type: string }
+ *               ano_publicacao:   { type: integer }
+ *               categoria:        { type: string }
+ *               isbn:             { type: string }
+ *               quantidade_total: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Livro atualizado
+ *       404:
+ *         description: Livro não encontrado
+ */
 router.put('/livros/:id', authenticateToken, authorize('admin', 'bibliotecario'), livroController.putLivro);
+
+/**
+ * @swagger
+ * /livros/{id}:
+ *   delete:
+ *     summary: Exclui um livro (apenas admin)
+ *     tags: [Livros]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       204:
+ *         description: Livro excluído
+ *       404:
+ *         description: Livro não encontrado
+ */
 // Apenas admin pode excluir livros
 router.delete('/livros/:id', authenticateToken, authorize('admin'), livroController.deleteLivro);
 
@@ -177,7 +295,43 @@ router.delete('/livros/:id', authenticateToken, authorize('admin'), livroControl
  *         description: Lista de leitores
  */
 router.get('/leitores', authenticateToken, authorize('admin', 'bibliotecario'), leitorController.getLeitores);
+
+/**
+ * @swagger
+ * /leitores/{id}:
+ *   get:
+ *     summary: Busca um leitor por ID
+ *     tags: [Leitores]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Dados do leitor
+ *       404:
+ *         description: Leitor não encontrado
+ */
 router.get('/leitores/:id', authenticateToken, authorize('admin', 'bibliotecario'), leitorController.getLeitorById);
+
+/**
+ * @swagger
+ * /leitores/{id}/emprestimos:
+ *   get:
+ *     summary: Histórico de empréstimos de um leitor (admin/bibliotecario veem qualquer leitor; o próprio leitor só vê os seus)
+ *     tags: [Leitores]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Lista de empréstimos do leitor
+ *       403:
+ *         description: Leitor tentando consultar empréstimos de outro leitor
+ */
 router.get('/leitores/:id/emprestimos', authenticateToken, leitorController.getEmprestimosByLeitor);
 
 /**
@@ -203,7 +357,56 @@ router.get('/leitores/:id/emprestimos', authenticateToken, leitorController.getE
  *         description: Leitor cadastrado
  */
 router.post('/leitores', authenticateToken, authorize('admin', 'bibliotecario'), leitorController.postLeitor);
+
+/**
+ * @swagger
+ * /leitores/{id}:
+ *   put:
+ *     summary: Edita um leitor existente (admin ou bibliotecario)
+ *     tags: [Leitores]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:     { type: string }
+ *               cpf_ra:   { type: string }
+ *               email:    { type: string }
+ *               telefone: { type: string }
+ *               endereco: { type: string }
+ *               status:   { type: string, enum: [ativo, inativo] }
+ *     responses:
+ *       200:
+ *         description: Leitor atualizado
+ *       404:
+ *         description: Leitor não encontrado
+ */
 router.put('/leitores/:id', authenticateToken, authorize('admin', 'bibliotecario'), leitorController.putLeitor);
+
+/**
+ * @swagger
+ * /leitores/{id}:
+ *   delete:
+ *     summary: Exclui um leitor (apenas admin)
+ *     tags: [Leitores]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       204:
+ *         description: Leitor excluído
+ *       404:
+ *         description: Leitor não encontrado
+ */
 router.delete('/leitores/:id', authenticateToken, authorize('admin'), leitorController.deleteLeitor);
 
 // ==================== EMPRÉSTIMOS ====================
@@ -221,11 +424,41 @@ router.delete('/leitores/:id', authenticateToken, authorize('admin'), leitorCont
  *       - in: query
  *         name: leitor_id
  *         schema: { type: integer }
+ *       - in: query
+ *         name: data
+ *         description: Filtra por uma data exata de empréstimo (YYYY-MM-DD)
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: data_inicio
+ *         description: Filtra empréstimos com data_emprestimo a partir desta data
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: data_fim
+ *         description: Filtra empréstimos com data_emprestimo até esta data
+ *         schema: { type: string, format: date }
  *     responses:
  *       200:
  *         description: Lista de empréstimos
  */
 router.get('/emprestimos', authenticateToken, authorize('admin', 'bibliotecario'), emprestimoController.getEmprestimos);
+
+/**
+ * @swagger
+ * /emprestimos/{id}:
+ *   get:
+ *     summary: Busca um empréstimo por ID
+ *     tags: [Empréstimos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Dados do empréstimo
+ *       404:
+ *         description: Empréstimo não encontrado
+ */
 router.get('/emprestimos/:id', authenticateToken, authorize('admin', 'bibliotecario'), emprestimoController.getEmprestimoById);
 
 /**

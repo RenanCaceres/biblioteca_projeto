@@ -7,14 +7,25 @@ const { Op } = require('sequelize');
 
 module.exports = {
   // GET /emprestimos — lista todos os empréstimos com filtros opcionais
-  // Filtros disponíveis por query string: ?status=aberto, ?leitor_id=2, ?atrasado=true
+  // Filtros disponíveis por query string: ?status=aberto, ?leitor_id=2,
+  // ?data=2026-01-10 (data exata) ou ?data_inicio=...&data_fim=... (intervalo)
   async getEmprestimos(req, res) {
     try {
-      const { status, leitor_id } = req.query;
+      const { status, leitor_id, data, data_inicio, data_fim } = req.query;
       const where = {};
 
       if (status)    where.status    = status;
       if (leitor_id) where.leitor_id = leitor_id;
+
+      // Filtro por data do empréstimo: aceita uma data exata (?data=) ou
+      // um intervalo (?data_inicio= e/ou ?data_fim=)
+      if (data) {
+        where.data_emprestimo = data;
+      } else if (data_inicio || data_fim) {
+        where.data_emprestimo = {};
+        if (data_inicio) where.data_emprestimo[Op.gte] = data_inicio;
+        if (data_fim)    where.data_emprestimo[Op.lte] = data_fim;
+      }
 
       // Verifica automaticamente empréstimos atrasados antes de retornar
       // (atualiza no banco quem passou da data_prevista_devolucao e ainda está "aberto")

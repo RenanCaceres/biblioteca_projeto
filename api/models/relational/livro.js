@@ -45,6 +45,16 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: 1,
     },
+    // Campo VIRTUAL (não existe coluna no banco) exigido pelo projeto:
+    // "Status: disponível ou indisponível". É calculado automaticamente
+    // a partir de quantidade_disponivel, então nunca fica dessincronizado
+    // com a quantidade real de exemplares.
+    status: {
+      type: Sequelize.VIRTUAL,
+      get() {
+        return this.getDataValue('quantidade_disponivel') > 0 ? 'disponivel' : 'indisponivel';
+      },
+    },
   });
 
   return Livro;

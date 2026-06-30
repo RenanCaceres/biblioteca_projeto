@@ -47,6 +47,7 @@ function gerarToken(user) {
     login: user.login,
     tipo: user.tipo, // 'admin', 'bibliotecario' ou 'leitor'
     nome: user.nome,
+    leitor_id: user.leitor_id, // vincula ao registro da tabela "leitor" (só relevante quando tipo = 'leitor')
   };
   // Token expira em 8 horas (suficiente para um dia de uso)
   return jwt.sign(payload, secretKey, { expiresIn: '8h' });
