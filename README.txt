@@ -5,7 +5,7 @@
 ====================================================
 
 ------------------------------------------------------
-O QUE É ESTE PROJETO?
+O QUE É ESTE PROJETO?  
 ------------------------------------------------------
 Um sistema web completo para gerenciar uma biblioteca,
 com API backend em Node.js/Express e frontend em React.
