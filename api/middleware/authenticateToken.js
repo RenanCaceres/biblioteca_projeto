@@ -1,5 +1,4 @@
 // middleware/authenticateToken.js
-// Baseado EXATAMENTE na apostila cap22 (APIs - Parte 5)
 // Esse middleware intercepta a requisição e verifica se o token JWT é válido
 // Se válido, libera o acesso à rota; se não, retorna 401 ou 403
 
@@ -8,7 +7,7 @@ const secretKey = 'sua_chave_secreta_biblioteca'; // mesma chave usada no authCo
 
 function authenticateToken(req, res, next) {
   // Pega o cabeçalho Authorization da requisição
-  // O formato esperado é: "Bearer <token>"
+
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // pega só o token após "Bearer "
 
