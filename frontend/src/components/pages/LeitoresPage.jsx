@@ -4,11 +4,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { getLeitores, postLeitor, putLeitor, deleteLeitor } from '../../services/api';
+import { decodeJWT } from '../../utils/jwt';
 
 function getTipoUsuario() {
   const token = localStorage.getItem('token');
-  if (!token) return '';
-  try { return JSON.parse(atob(token.split('.')[1])).tipo; } catch { return ''; }
+  return decodeJWT(token)?.tipo || '';
 }
 
 const formVazio = { nome: '', cpf_ra: '', email: '', telefone: '', endereco: '', status: 'ativo' };
