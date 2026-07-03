@@ -54,9 +54,9 @@ biblioteca/
 │   │   ├── leitorController.js     ← CRUD de leitores
 │   │   └── emprestimoController.js ← Empréstimos e devoluções
 │   ├── middleware/
-│   │   └── authenticateToken.js  ← Verifica JWT (apostila cap22)
+│   │   └── authenticateToken.js    ← Verifica JWT (apostila cap22)
 │   └── routes/
-│       └── routes.js         ← Todas as rotas da API
+│       └── routes.js               ← Todas as rotas da API
 │
 └── frontend/                 ← Frontend React (Vite)
     ├── index.html
@@ -67,15 +67,18 @@ biblioteca/
         ├── App.jsx            ← Rotas do React Router
         ├── services/
         │   └── api.js         ← Funções para chamar a API
+        ├── utils/
+        │   └── jwt.js         ← Funções para gerenciar o JWT (salvar, recuperar e remover token)
         └── components/
             ├── layout/
             │   └── Navbar.jsx ← Barra de navegação
             └── pages/
-                ├── LoginPage.jsx      ← Tela de login
-                ├── LivrosPage.jsx     ← Cadastro e listagem de livros
-                ├── LeitoresPage.jsx   ← Cadastro e listagem de leitores
+                ├── LoginPage.jsx       ← Tela de login
+                ├── LivrosPage.jsx      ← Cadastro e listagem de livros
+                ├── LeitoresPage.jsx    ← Cadastro e listagem de leitores
                 ├── EmprestimosPage.jsx ← Empréstimos e devoluções
-                └── UsuariosPage.jsx   ← Gerenciar usuários (só admin)
+                └── UsuariosPage.jsx    ← Gerenciar usuários (somente administrador)
+
 
 ------------------------------------------------------
 PRÉ-REQUISITOS
