@@ -5,12 +5,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { getLivros, postLivro, putLivro, deleteLivro } from '../../services/api';
+import { decodeJWT } from '../../utils/jwt.js';
 
 // Retorna o tipo do usuário logado decodificando o JWT do localStorage
 function getTipoUsuario() {
   const token = localStorage.getItem('token');
-  if (!token) return '';
-  try { return JSON.parse(atob(token.split('.')[1])).tipo; } catch { return ''; }
+  return decodeJWT(token)?.tipo || '';
 }
 
 const formVazio = {
