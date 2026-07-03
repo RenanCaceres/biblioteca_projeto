@@ -4,11 +4,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { getEmprestimos, postEmprestimo, registrarDevolucao, getLivros, getLeitores, getEmprestimosByLeitor } from '../../services/api';
+import { decodeJWT } from '../../utils/jwt';
 
 function getUsuarioLogado() {
   const token = localStorage.getItem('token');
-  if (!token) return null;
-  try { return JSON.parse(atob(token.split('.')[1])); } catch { return null; }
+  return decodeJWT(token);
 }
 
 const hoje = new Date().toISOString().split('T')[0];
